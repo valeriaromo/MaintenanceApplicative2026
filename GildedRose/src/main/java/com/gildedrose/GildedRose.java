@@ -2,88 +2,107 @@ package com.gildedrose;
 
 class GildedRose {
 
-    Item[] items;
+    private UpdatableItem[] items;
 
     public GildedRose(Item[] items) {
-        this.items = items;
+        this.items = new UpdatableItem[items.length];
+
+        for (int i = 0; i < items.length; i++) {
+            this.items[i] = createItem(items[i]);
+        }
     }
 
     public void updateQuality() {
+        for (UpdatableItem item : items) {
+            item.update();
+        }
+    }
 
-        for (Item item : items) {
+    private UpdatableItem createItem(Item item) {
+        switch (item.name) {
+            case "Aged Brie": return new AgedBrieItem(item);
+            case "Backstage passes to a TAFKAL80ETC concert": return new BackstagePassItem(item);
+            case "Sulfuras, Hand of Ragnaros": return new SulfurasItem(item);
+            case "Conjured": return new ConjuredItem(item);
+            default: return new NormalItem(item);
+        }
+    }
 
-            switch (item.name) {
+    // ======= CLASE BASE =======
+    abstract class UpdatableItem {
+        protected Item item;
 
-                case "Aged Brie":
-                    updateAgedBrie(item);
-                    break;
+        public UpdatableItem(Item item) {
+            this.item = item;
+        }
 
-                case "Backstage passes to a TAFKAL80ETC concert":
-                    updateBackstagePass(item);
-                    break;
+        abstract void update();
 
-                case "Sulfuras, Hand of Ragnaros":
-                    updateSulfuras(item);
-                    break;
+        protected void increaseQuality() {
+            if (item.quality < 50) item.quality++;
+        }
 
-                default:
-                    updateNormalItem(item);
-                    break;
+        protected void decreaseQuality() {
+            if (item.quality > 0) item.quality--;
+        }
+
+        protected void decreaseSellIn() {
+            item.sellIn--;
+        }
+    }
+
+    // ======= TIPOS DE ITEM =======
+    class NormalItem extends UpdatableItem {
+        public NormalItem(Item item) { super(item); }
+
+        void update() {
+            decreaseQuality();
+            decreaseSellIn();
+            if (item.sellIn < 0) decreaseQuality();
+        }
+    }
+
+    class AgedBrieItem extends UpdatableItem {
+        public AgedBrieItem(Item item) { super(item); }
+
+        void update() {
+            increaseQuality();
+            decreaseSellIn();
+            if (item.sellIn < 0) increaseQuality();
+        }
+    }
+
+    class BackstagePassItem extends UpdatableItem {
+        public BackstagePassItem(Item item) { super(item); }
+
+        void update() {
+            increaseQuality();
+            if (item.sellIn < 11) increaseQuality();
+            if (item.sellIn < 6) increaseQuality();
+            decreaseSellIn();
+            if (item.sellIn < 0) item.quality = 0;
+        }
+    }
+
+    class SulfurasItem extends UpdatableItem {
+        public SulfurasItem(Item item) { super(item); }
+
+        void update() {
+            // no cambia nunca
+        }
+    }
+
+    class ConjuredItem extends UpdatableItem {
+        public ConjuredItem(Item item) { super(item); }
+
+        void update() {
+            decreaseQuality();
+            decreaseQuality();
+            decreaseSellIn();
+            if (item.sellIn < 0) {
+                decreaseQuality();
+                decreaseQuality();
             }
-        }
-    }
-
-    private void updateNormalItem(Item item) {
-
-        decreaseQuality(item);
-        item.sellIn--;
-
-        if (item.sellIn < 0) {
-            decreaseQuality(item);
-        }
-    }
-
-    private void updateAgedBrie(Item item) {
-
-        increaseQuality(item);
-        item.sellIn--;
-
-        if (item.sellIn < 0) {
-            increaseQuality(item);
-        }
-    }
-
-    private void updateBackstagePass(Item item) {
-
-        increaseQuality(item);
-
-        if (item.sellIn < 11) {
-            increaseQuality(item);
-        }
-
-        if (item.sellIn < 6) {
-            increaseQuality(item);
-        }
-
-        item.sellIn--;
-
-        if (item.sellIn < 0) {
-            item.quality = 0;
-        }
-    }
-
-    private void updateSulfuras(Item item) {
-    }
-
-    private void increaseQuality(Item item) {
-        if (item.quality < 50) {
-            item.quality++;
-        }
-    }
-
-    private void decreaseQuality(Item item) {
-        if (item.quality > 0) {
-            item.quality--;
         }
     }
 }
