@@ -20,6 +20,7 @@ class CalendarManagerTest {
         calendrier = new CalendarManager();
     }
 
+
     private RendezVousPersonnel rdv(String titre, int jour, int heureDebut, int dureeMin) {
         return new RendezVousPersonnel(
                 EventId.generer(),
@@ -36,6 +37,7 @@ class CalendarManagerTest {
                 DateEvenement.de(2025, 6, 30, 23, 59)
         );
     }
+
 
     @Nested
     @DisplayName("Ajout d'événements")
@@ -179,9 +181,8 @@ class CalendarManagerTest {
         @Test
         @DisplayName("détecte un conflit entre deux événements qui se chevauchent")
         void conflitDetecte() {
-            // 10h–11h et 10h30–11h30 → conflit
             calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
-            calendrier.ajouterEvenement(rdv("B", 10, 10, 60)); // même heure
+            calendrier.ajouterEvenement(rdv("B", 10, 10, 60)); 
 
             assertThat(calendrier.detecterConflits()).hasSize(1);
         }

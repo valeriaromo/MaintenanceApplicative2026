@@ -1,4 +1,5 @@
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
@@ -158,7 +159,7 @@ public class Main {
                         break;
 
                     case "2":
-                        // Ajout simplifié d'un RDV personnel
+
                         System.out.print("Titre de l'événement : ");
                         String titre = scanner.nextLine();
                         System.out.print("Année (AAAA) : ");
@@ -182,7 +183,7 @@ public class Main {
                         break;
 
                     case "3":
-                        // Ajout simplifié d'une réunion
+
                         System.out.print("Titre de l'événement : ");
                         String titre2 = scanner.nextLine();
                         System.out.print("Année (AAAA) : ");
@@ -218,7 +219,6 @@ public class Main {
                         break;
 
                         case "4":
-                        // Ajout simplifié d'une réunion
                         System.out.print("Titre de l'événement : ");
                         String titre3 = scanner.nextLine();
                         System.out.print("Année (AAAA) : ");
