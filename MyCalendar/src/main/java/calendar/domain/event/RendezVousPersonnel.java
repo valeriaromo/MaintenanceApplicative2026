@@ -1,6 +1,11 @@
 package calendar.domain.event;
 
-import calendar.domain.valueobject.*;
+import calendar.domain.valueobject.DateEvenement;
+import calendar.domain.valueobject.DureeEvenement;
+import calendar.domain.valueobject.EventId;
+import calendar.domain.valueobject.Periode;
+import calendar.domain.valueobject.Proprietaire;
+import calendar.domain.valueobject.TitreEvenement;
 
 import java.util.List;
 
@@ -25,7 +30,7 @@ public final class RendezVousPersonnel extends Evenement {
 
     @Override
     public String description() {
-        return "RDV : " + titre() + " à " + dateDebut() + " (durée : " + duree + ")";
+        return "RDV : " + titre() + " le " + dateDebut() + " (durée : " + duree + ")";
     }
 
     @Override

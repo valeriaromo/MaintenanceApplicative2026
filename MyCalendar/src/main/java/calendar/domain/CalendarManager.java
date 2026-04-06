@@ -1,9 +1,15 @@
 package calendar.domain;
 
 import calendar.domain.event.Evenement;
-import calendar.domain.valueobject.*;
+import calendar.domain.valueobject.Conflit;
+import calendar.domain.valueobject.EventId;
+import calendar.domain.valueobject.Periode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -38,7 +44,7 @@ public class CalendarManager {
                 .findFirst();
     }
 
-    public List<ConflitHoraire> detecterConflits() {
+    public List<Conflit> detecterConflits() {
         List<Evenement> ponctuels = evenements.stream()
                 .filter(e -> !e.dureeEstNulle())
                 .collect(Collectors.toList());
@@ -47,7 +53,7 @@ public class CalendarManager {
                 .boxed()
                 .flatMap(i -> IntStream.range(i + 1, ponctuels.size())
                         .filter(j -> seChevauchent(ponctuels.get(i), ponctuels.get(j)))
-                        .mapToObj(j -> ConflitHoraire.entre(ponctuels.get(i), ponctuels.get(j))))
+                        .mapToObj(j -> Conflit.entre(ponctuels.get(i), ponctuels.get(j))))
                 .collect(Collectors.toUnmodifiableList());
     }
 

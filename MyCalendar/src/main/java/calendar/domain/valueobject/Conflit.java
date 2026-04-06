@@ -5,6 +5,7 @@ import calendar.domain.event.Evenement;
 import java.util.Objects;
 
 public final class Conflit {
+
     private final Evenement premier;
     private final Evenement second;
 
@@ -17,8 +18,13 @@ public final class Conflit {
         return new Conflit(premier, second);
     }
 
-    public Evenement premier() { return premier; }
-    public Evenement second() { return second; }
+    public Evenement premier() {
+        return premier;
+    }
+
+    public Evenement second() {
+        return second;
+    }
 
     @Override
     public String toString() {
@@ -30,7 +36,7 @@ public final class Conflit {
         if (this == o) return true;
         if (!(o instanceof Conflit that)) return false;
         return (premier.equals(that.premier) && second.equals(that.second))
-            || (premier.equals(that.second) && second.equals(that.premier));
+                || (premier.equals(that.second) && second.equals(that.premier));
     }
 
     @Override

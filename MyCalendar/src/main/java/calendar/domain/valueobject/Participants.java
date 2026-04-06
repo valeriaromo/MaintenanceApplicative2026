@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public final class Participants {
+
     private final List<String> noms;
 
     private Participants(List<String> noms) {

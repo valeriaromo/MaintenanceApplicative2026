@@ -3,6 +3,7 @@ package calendar.domain.valueobject;
 import java.util.Objects;
 
 public final class Periode {
+
     private final DateEvenement debut;
     private final DateEvenement fin;
 
@@ -28,10 +29,6 @@ public final class Periode {
 
     public boolean contient(DateEvenement date) {
         return date.estEntreInclus(debut, fin);
-    }
-
-    public boolean chevauche(DateEvenement dateDebut, DateEvenement dateFin) {
-        return dateDebut.estAvant(fin) && dateFin.estApres(debut);
     }
 
     @Override

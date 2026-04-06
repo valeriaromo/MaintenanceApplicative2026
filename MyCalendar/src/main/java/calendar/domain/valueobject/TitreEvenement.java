@@ -3,6 +3,7 @@ package calendar.domain.valueobject;
 import java.util.Objects;
 
 public final class TitreEvenement {
+
     private final String valeur;
 
     private TitreEvenement(String valeur) {

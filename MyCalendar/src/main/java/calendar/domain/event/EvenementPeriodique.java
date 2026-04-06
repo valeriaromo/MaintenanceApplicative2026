@@ -1,6 +1,11 @@
 package calendar.domain.event;
 
-import calendar.domain.valueobject.*;
+import calendar.domain.valueobject.DateEvenement;
+import calendar.domain.valueobject.EventId;
+import calendar.domain.valueobject.FrequenceJours;
+import calendar.domain.valueobject.Periode;
+import calendar.domain.valueobject.Proprietaire;
+import calendar.domain.valueobject.TitreEvenement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +14,8 @@ public final class EvenementPeriodique extends Evenement {
 
     private final FrequenceJours frequence;
 
-    public EvenementPeriodique(EventId id, TitreEvenement titre, Proprietaire proprietaire, DateEvenement dateDebut, FrequenceJours frequence) {
+    public EvenementPeriodique(EventId id, TitreEvenement titre, Proprietaire proprietaire,
+                               DateEvenement dateDebut, FrequenceJours frequence) {
         super(id, titre, proprietaire, dateDebut);
         this.frequence = frequence;
     }

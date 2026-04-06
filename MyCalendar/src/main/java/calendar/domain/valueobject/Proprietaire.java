@@ -3,6 +3,7 @@ package calendar.domain.valueobject;
 import java.util.Objects;
 
 public final class Proprietaire {
+
     private final String nom;
 
     private Proprietaire(String nom) {

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public final class DateEvenement {
+
     private final LocalDateTime valeur;
 
     private DateEvenement(LocalDateTime valeur) {

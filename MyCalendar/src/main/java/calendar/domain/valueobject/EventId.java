@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 public final class EventId {
+
     private final String value;
 
     private EventId(String value) {

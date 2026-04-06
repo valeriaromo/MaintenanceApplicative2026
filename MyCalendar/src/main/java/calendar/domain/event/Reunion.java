@@ -1,6 +1,13 @@
 package calendar.domain.event;
 
-import calendar.domain.valueobject.*;
+import calendar.domain.valueobject.DateEvenement;
+import calendar.domain.valueobject.DureeEvenement;
+import calendar.domain.valueobject.EventId;
+import calendar.domain.valueobject.LieuEvenement;
+import calendar.domain.valueobject.Participants;
+import calendar.domain.valueobject.Periode;
+import calendar.domain.valueobject.Proprietaire;
+import calendar.domain.valueobject.TitreEvenement;
 
 import java.util.List;
 
@@ -19,9 +26,17 @@ public final class Reunion extends Evenement {
         this.participants = participants;
     }
 
-    public DureeEvenement duree() { return duree; }
-    public LieuEvenement lieu() { return lieu; }
-    public Participants participants() { return participants; }
+    public DureeEvenement duree() {
+        return duree;
+    }
+
+    public LieuEvenement lieu() {
+        return lieu;
+    }
+
+    public Participants participants() {
+        return participants;
+    }
 
     @Override
     public DateEvenement dateFin() {

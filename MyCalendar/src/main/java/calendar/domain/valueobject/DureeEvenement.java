@@ -3,6 +3,7 @@ package calendar.domain.valueobject;
 import java.util.Objects;
 
 public final class DureeEvenement {
+
     private final long minutes;
 
     private DureeEvenement(long minutes) {

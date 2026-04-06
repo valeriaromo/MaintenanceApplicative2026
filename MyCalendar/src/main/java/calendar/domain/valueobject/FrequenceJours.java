@@ -3,6 +3,7 @@ package calendar.domain.valueobject;
 import java.util.Objects;
 
 public final class FrequenceJours {
+
     private final long jours;
 
     private FrequenceJours(long jours) {

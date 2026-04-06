@@ -1,6 +1,10 @@
 package calendar.domain.event;
 
-import calendar.domain.valueobject.*;
+import calendar.domain.valueobject.DateEvenement;
+import calendar.domain.valueobject.EventId;
+import calendar.domain.valueobject.Periode;
+import calendar.domain.valueobject.Proprietaire;
+import calendar.domain.valueobject.TitreEvenement;
 
 import java.util.List;
 
@@ -19,25 +23,35 @@ public abstract class Evenement {
         this.dateDebut = dateDebut;
     }
 
-    public EventId id() { return id; }
-    public TitreEvenement titre() { return titre; }
-    public Proprietaire proprietaire() { return proprietaire; }
-    public DateEvenement dateDebut() { return dateDebut; }
+    public EventId id() {
+        return id;
+    }
 
-  
+    public TitreEvenement titre() {
+        return titre;
+    }
+
+    public Proprietaire proprietaire() {
+        return proprietaire;
+    }
+
+    public DateEvenement dateDebut() {
+        return dateDebut;
+    }
+
+
     public abstract String description();
 
- 
+
     public abstract boolean estDansPeriode(Periode periode);
 
- 
+
     public abstract DateEvenement dateFin();
 
-  
+    
     public boolean dureeEstNulle() {
         return dateFin().equals(dateDebut());
     }
 
-  
     public abstract List<DateEvenement> occurrencesDans(Periode periode);
 }

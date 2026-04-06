@@ -1,0 +1,16 @@
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\CalendarManager.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\event\Evenement.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\event\EvenementPeriodique.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\event\RendezVousPersonnel.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\event\Reunion.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\Conflit.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\DateEvenement.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\DureeEvenement.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\EventId.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\FrequenceJours.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\LieuEvenement.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\Participants.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\Periode.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\Proprietaire.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\domain\valueobject\TitreEvenement.java
+C:\Users\valer\Desktop\IUT\maint\MaintenanceApplicative2026\MyCalendar\src\main\java\calendar\Main.java
