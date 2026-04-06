@@ -1,12 +1,9 @@
 package calendar;
 
-import calendar.domain.event.EvenementPeriodique;
-import calendar.domain.valueobject.DateEvenement;
-import calendar.domain.valueobject.EventId;
-import calendar.domain.valueobject.FrequenceJours;
-import calendar.domain.valueobject.Periode;
-import calendar.domain.valueobject.Proprietaire;
-import calendar.domain.valueobject.TitreEvenement;
+import calendar.domain.CalendarManager;
+import calendar.domain.event.*;
+import calendar.domain.valueobject.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,131 +11,171 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@DisplayName("EvenementPeriodique")
-class EvenementPeriodiqueTest {
+@DisplayName("CalendarManager")
+class CalendarManagerTest {
 
-    private EvenementPeriodique hebdomadaire() {
-        return new EvenementPeriodique(
-                EventId.generer(),
-                TitreEvenement.de("Stand-up"),
-                Proprietaire.de("Alice"),
-                DateEvenement.de(2025, 1, 1, 9, 0),
-                FrequenceJours.de(7)
+    private CalendarManager calendrier;
+
+    @BeforeEach
+    void setUp() { calendrier = new CalendarManager(); }
+
+    private RendezVousPersonnel rdv(String titre, int jour, int heure, int duree) {
+        return new RendezVousPersonnel(
+                EventId.generer(), TitreEvenement.de(titre), Proprietaire.de("Alice"),
+                DateEvenement.de(2025, 6, jour, heure, 0), DureeEvenement.deMinutes(duree)
         );
     }
 
-    @Nested
-    @DisplayName("Création")
-    class Creation {
+    private Periode juin() {
+        return Periode.entre(DateEvenement.de(2025, 6, 1, 0, 0), DateEvenement.de(2025, 6, 30, 23, 59));
+    }
 
-        @Test
-        @DisplayName("crée un événement périodique avec ses propriétés")
-        void creerEvenementPeriodique() {
-            var ep = hebdomadaire();
-            assertThat(ep.titre()).isEqualTo(TitreEvenement.de("Stand-up"));
-            assertThat(ep.frequence()).isEqualTo(FrequenceJours.de(7));
+    @Nested @DisplayName("Ajout")
+    class Ajout {
+        @Test void ajouteEvenement() {
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            assertThat(calendrier.tousLesEvenements()).hasSize(1);
         }
-
-        @Test
-        @DisplayName("a une durée nulle (pas de durée fixe)")
-        void dureeNulle() {
-            assertThat(hebdomadaire().dureeEstNulle()).isTrue();
+        @Test void refuseNull() {
+            assertThatThrownBy(() -> calendrier.ajouterEvenement(null))
+                    .isInstanceOf(NullPointerException.class);
         }
-
-        @Test
-        @DisplayName("FrequenceJours refuse zéro")
-        void frequenceZeroRefusee() {
-            assertThatThrownBy(() -> FrequenceJours.de(0))
-                    .isInstanceOf(IllegalArgumentException.class);
-        }
-
-        @Test
-        @DisplayName("FrequenceJours refuse une valeur négative")
-        void frequenceNegativeRefusee() {
-            assertThatThrownBy(() -> FrequenceJours.de(-3))
-                    .isInstanceOf(IllegalArgumentException.class);
+        @Test void ajoutePlusieursTypes() {
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            calendrier.ajouterEvenement(new Reunion(
+                    EventId.generer(), TitreEvenement.de("R"), Proprietaire.de("Bob"),
+                    DateEvenement.de(2025, 6, 12, 10, 0), DureeEvenement.deMinutes(90),
+                    LieuEvenement.de("Salle B"), Participants.de("Bob", "Alice")));
+            calendrier.ajouterEvenement(new EvenementPeriodique(
+                    EventId.generer(), TitreEvenement.de("P"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 2, 9, 0), FrequenceJours.de(1)));
+            assertThat(calendrier.tousLesEvenements()).hasSize(3);
         }
     }
 
-    @Nested
-    @DisplayName("Occurrences dans une période")
-    class Occurrences {
-
-        @Test
-        @DisplayName("trouve 5 occurrences en janvier 2025 (hebdo depuis le 1er)")
-        void cinqOccurrencesEnJanvier() {
-            // 1, 8, 15, 22, 29 janvier → 5 occurrences
-            var janvier = Periode.entre(
-                    DateEvenement.de(2025, 1, 1, 0, 0),
-                    DateEvenement.de(2025, 1, 31, 23, 59)
-            );
-            assertThat(hebdomadaire().occurrencesDans(janvier)).hasSize(5);
+    @Nested @DisplayName("Période")
+    class PeriodeTests {
+        @Test void retourneEvenementsDansPeriode() {
+            calendrier.ajouterEvenement(rdv("Juin", 5, 10, 30));
+            assertThat(calendrier.evenementsDansPeriode(juin())).hasSize(1);
         }
-
-        @Test
-        @DisplayName("trouve 0 occurrence si la période est entièrement avant le début")
-        void aucuneOccurrenceAvantDebut() {
-            var avant = Periode.entre(
-                    DateEvenement.de(2024, 12, 1, 0, 0),
-                    DateEvenement.de(2024, 12, 31, 23, 59)
-            );
-            assertThat(hebdomadaire().occurrencesDans(avant)).isEmpty();
+        @Test void exclutEvenementHorsPeriode() {
+            calendrier.ajouterEvenement(rdv("Juin", 5, 10, 30));
+            var juillet = Periode.entre(DateEvenement.de(2025, 7, 1, 0, 0), DateEvenement.de(2025, 7, 31, 23, 59));
+            assertThat(calendrier.evenementsDansPeriode(juillet)).isEmpty();
         }
-
-        @Test
-        @DisplayName("est dans la période si au moins une occurrence y tombe")
-        void estDansPeriodeSiOccurrencePresente() {
-            var periode = Periode.entre(
-                    DateEvenement.de(2025, 1, 7, 0, 0),
-                    DateEvenement.de(2025, 1, 14, 23, 59)
-            );
-            assertThat(hebdomadaire().estDansPeriode(periode)).isTrue();
+        @Test void inclusPeriodiquesAvecOccurrence() {
+            calendrier.ajouterEvenement(new EvenementPeriodique(
+                    EventId.generer(), TitreEvenement.de("Hebdo"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 2, 9, 0), FrequenceJours.de(7)));
+            assertThat(calendrier.evenementsDansPeriode(juin())).hasSize(1);
         }
-
-        @Test
-        @DisplayName("n'est pas dans une période sans occurrence")
-        void nestPasDansPeriodeSansOccurrence() {
-            // Entre le 2 et le 7 janvier à 8h59 → le 8 à 9h n'est pas inclus
-            var periode = Periode.entre(
-                    DateEvenement.de(2025, 1, 2, 0, 0),
-                    DateEvenement.de(2025, 1, 7, 23, 59)
-            );
-            assertThat(hebdomadaire().estDansPeriode(periode)).isFalse();
+        @Test void excluPeriodiqueSansOccurrence() {
+            calendrier.ajouterEvenement(new EvenementPeriodique(
+                    EventId.generer(), TitreEvenement.de("Noel"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 12, 25, 0, 0), FrequenceJours.de(365)));
+            assertThat(calendrier.evenementsDansPeriode(juin())).isEmpty();
         }
-
-        @Test
-        @DisplayName("les occurrences retournées sont dans l'ordre chronologique")
-        void occurrencesOrdreChronologique() {
-            var janvier = Periode.entre(
-                    DateEvenement.de(2025, 1, 1, 0, 0),
-                    DateEvenement.de(2025, 1, 31, 23, 59)
-            );
-            var occurrences = hebdomadaire().occurrencesDans(janvier);
-            assertThat(occurrences.get(0)).isEqualTo(DateEvenement.de(2025, 1, 1, 9, 0));
-            assertThat(occurrences.get(1)).isEqualTo(DateEvenement.de(2025, 1, 8, 9, 0));
+        @Test void refusePeriodeNull() {
+            assertThatThrownBy(() -> calendrier.evenementsDansPeriode(null))
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 
-    @Nested
-    @DisplayName("Description")
-    class Description {
-
-        @Test
-        @DisplayName("commence par Événement périodique")
-        void descriptionPrefixe() {
-            assertThat(hebdomadaire().description()).startsWith("Événement périodique");
+    @Nested @DisplayName("Suppression & recherche")
+    class SuppressionRecherche {
+        @Test void supprimerParId() {
+            var id = EventId.generer();
+            calendrier.ajouterEvenement(new RendezVousPersonnel(id,
+                    TitreEvenement.de("X"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 10, 10, 0), DureeEvenement.deMinutes(30)));
+            calendrier.supprimerParId(id);
+            assertThat(calendrier.tousLesEvenements()).isEmpty();
         }
-
-        @Test
-        @DisplayName("contient le titre")
-        void descriptionContientTitre() {
-            assertThat(hebdomadaire().description()).contains("Stand-up");
+        @Test void supprimerIdInconnuNeFaitRien() {
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            calendrier.supprimerParId(EventId.generer());
+            assertThat(calendrier.tousLesEvenements()).hasSize(1);
         }
+        @Test void refuseSupprimerNull() {
+            assertThatThrownBy(() -> calendrier.supprimerParId(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+        @Test void rechercherParIdTrouve() {
+            var id = EventId.generer();
+            var e = new RendezVousPersonnel(id, TitreEvenement.de("X"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 10, 10, 0), DureeEvenement.deMinutes(30));
+            calendrier.ajouterEvenement(e);
+            assertThat(calendrier.rechercherParId(id)).contains(e);
+        }
+        @Test void rechercherParIdIntrouvable() {
+            assertThat(calendrier.rechercherParId(EventId.generer())).isEmpty();
+        }
+    }
 
-        @Test
-        @DisplayName("contient la fréquence en jours")
-        void descriptionContientFrequence() {
-            assertThat(hebdomadaire().description()).contains("7");
+    @Nested @DisplayName("Détection de conflits")
+    class Conflits {
+        @Test void conflitSimultane() {
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            calendrier.ajouterEvenement(rdv("B", 10, 10, 60));
+            assertThat(calendrier.detecterConflits()).hasSize(1);
+        }
+        @Test void conflitPartiel() {
+            // A 10h–11h, B 10h30–11h30
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            calendrier.ajouterEvenement(new RendezVousPersonnel(
+                    EventId.generer(), TitreEvenement.de("B"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 10, 10, 30), DureeEvenement.deMinutes(60)));
+            assertThat(calendrier.detecterConflits()).hasSize(1);
+        }
+        @Test void pasDeConflitConsecutifs() {
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            calendrier.ajouterEvenement(rdv("B", 10, 11, 60));
+            assertThat(calendrier.detecterConflits()).isEmpty();
+        }
+        @Test void pasDeConflitSepares() {
+            calendrier.ajouterEvenement(rdv("A", 10, 9, 60));
+            calendrier.ajouterEvenement(rdv("B", 10, 14, 60));
+            assertThat(calendrier.detecterConflits()).isEmpty();
+        }
+        @Test void descriptionConflitContientTitres() {
+            calendrier.ajouterEvenement(rdv("Médecin", 10, 10, 60));
+            calendrier.ajouterEvenement(rdv("Dentiste", 10, 10, 60));
+            assertThat(calendrier.detecterConflits().get(0).toString())
+                    .contains("Médecin").contains("Dentiste");
+        }
+        @Test void periodiquesExclusDuConflitCarDureeNulle() {
+            calendrier.ajouterEvenement(new EvenementPeriodique(
+                    EventId.generer(), TitreEvenement.de("P1"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 10, 10, 0), FrequenceJours.de(7)));
+            calendrier.ajouterEvenement(new EvenementPeriodique(
+                    EventId.generer(), TitreEvenement.de("P2"), Proprietaire.de("Alice"),
+                    DateEvenement.de(2025, 6, 10, 10, 0), FrequenceJours.de(7)));
+            assertThat(calendrier.detecterConflits()).isEmpty();
+        }
+        @Test void troisConflitsPossibles() {
+            // 3 événements simultanés → 3 paires en conflit
+            calendrier.ajouterEvenement(rdv("A", 10, 10, 60));
+            calendrier.ajouterEvenement(rdv("B", 10, 10, 60));
+            calendrier.ajouterEvenement(rdv("C", 10, 10, 60));
+            assertThat(calendrier.detecterConflits()).hasSize(3);
+        }
+    }
+
+    @Nested @DisplayName("Polymorphisme")
+    class Polymorphisme {
+        @Test void chaqueTypeGenereSaDescription() {
+            var rdv = rdv("Médecin", 10, 14, 60);
+            var reunion = new Reunion(EventId.generer(), TitreEvenement.de("Lancement"),
+                    Proprietaire.de("Bob"), DateEvenement.de(2025, 6, 5, 9, 0),
+                    DureeEvenement.deMinutes(120), LieuEvenement.de("Salle A"),
+                    Participants.de("Bob", "Alice"));
+            var periodique = new EvenementPeriodique(EventId.generer(), TitreEvenement.de("Hebdo"),
+                    Proprietaire.de("Alice"), DateEvenement.de(2025, 6, 2, 9, 0), FrequenceJours.de(7));
+
+            assertThat(rdv.description()).startsWith("RDV :");
+            assertThat(reunion.description()).startsWith("Réunion :");
+            assertThat(periodique.description()).startsWith("Événement périodique");
         }
     }
 }
