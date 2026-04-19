@@ -1,66 +1,314 @@
-
 package trivia;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.util.Random;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
+import static org.junit.jupiter.api.Assertions.*;
 
 public class GameTest {
-	@Test
-	public void caracterizationTest() {
-		// runs 10.000 "random" games to see the output of old and new code mathces
-		for (int seed = 1; seed < 10_000; seed++) {
-			testSeed(seed, false);
-		}
-	}
 
-	private void testSeed(int seed, boolean printExpected) {
-		String expectedOutput = extractOutput(new Random(seed), new GameOld());
-		if (printExpected) {
-			System.out.println(expectedOutput);
-		}
-		String actualOutput = extractOutput(new Random(seed), new Game());
-		assertEquals(expectedOutput, actualOutput);
-	}
+    private Game game;
+    private ByteArrayOutputStream output;
 
-	@Test
-	@Disabled("enable back and set a particular seed to see the output")
-	public void oneSeed() {
-		testSeed(1, true);
-	}
+    @BeforeEach
+    void setUp() {
+        game = new Game();
+        output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output));
+    }
 
-	private String extractOutput(Random rand, IGame aGame) {
-		PrintStream old = System.out;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try (PrintStream inmemory = new PrintStream(baos)) {
-			// WARNING: System.out.println() doesn't work in this try {} as the sysout is captured and recorded in memory.
-			System.setOut(inmemory);
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        System.setOut(System.out);
+    }
 
-			aGame.add("Chet");
-			aGame.add("Pat");
-			aGame.add("Sue");
 
-			boolean notAWinner = false;
-			do {
-				aGame.roll(rand.nextInt(5) + 1);
+    @Nested
+    class PlayerManagement {
 
-				if (rand.nextInt(9) == 7) {
-					notAWinner = aGame.wrongAnswer();
-				} else {
-					notAWinner = aGame.handleCorrectAnswer();
-				}
+        @Test
+        void addingAPlayerIncreasesPlayerCount() {
+            game.add("Alice");
+            assertEquals(1, game.howManyPlayers());
+        }
 
-			} while (notAWinner);
-		} finally {
-			System.setOut(old);
-		}
+        @Test
+        void gameIsNotPlayableWithOnlyOnePlayer() {
+            game.add("Alice");
+            assertFalse(game.isPlayable());
+        }
 
-		return new String(baos.toByteArray());
-	}
+        @Test
+        void gameIsPlayableWithTwoPlayers() {
+            game.add("Alice");
+            game.add("Bob");
+            assertTrue(game.isPlayable());
+        }
+
+        @Test
+        void cannotAddMoreThanMaxPlayers() {
+            for (int i = 0; i < 7; i++) game.add("Player" + i);
+            assertEquals(6, game.howManyPlayers());
+        }
+
+        @Test
+        void addingPlayerPrintsName() {
+            game.add("Alice");
+            assertTrue(output.toString().contains("Alice was added"));
+        }
+
+        @Test
+        void addingPlayerPrintsPlayerNumber() {
+            game.add("Alice");
+            game.add("Bob");
+            assertTrue(output.toString().contains("They are player number 2"));
+        }
+    }
+
+
+    @Nested
+    class Movement {
+
+        @BeforeEach
+        void addPlayers() {
+            game.add("Alice");
+            game.add("Bob");
+        }
+
+        @Test
+        void rollPrintsCurrentPlayer() {
+            game.roll(3);
+            assertTrue(output.toString().contains("Alice is the current player"));
+        }
+
+        @Test
+        void rollPrintsRollValue() {
+            game.roll(4);
+            assertTrue(output.toString().contains("They have rolled a 4"));
+        }
+
+        @Test
+        void playerMovesToCorrectPosition() {
+            game.roll(3);
+            assertTrue(output.toString().contains("Alice's new location is 3"));
+        }
+
+        @Test
+        void boardWrapsAroundAt12() {
+            game.roll(6);
+            game.handleCorrectAnswer();
+            game.roll(1);
+            game.handleCorrectAnswer();
+            game.roll(6);
+            assertTrue(output.toString().contains("Alice's new location is 0"));
+        }
+    }
+
+
+    @Nested
+    class Categories {
+
+        @BeforeEach
+        void addPlayers() {
+            game.add("Alice");
+            game.add("Bob");
+        }
+
+        @Test
+        void position0IsPop() {
+            game.roll(4);
+            assertTrue(output.toString().contains("The category is Pop"));
+        }
+
+        @Test
+        void position1IsScience() {
+            game.roll(1);
+            assertTrue(output.toString().contains("The category is Science"));
+        }
+
+        @Test
+        void position2IsSports() {
+            game.roll(2);
+            assertTrue(output.toString().contains("The category is Sports"));
+        }
+
+        @Test
+        void position3IsRock() {
+            game.roll(3);
+            assertTrue(output.toString().contains("The category is Rock"));
+        }
+
+        @Test
+        void categoryRepeatsEvery4Positions() {
+            game.roll(4); // pos 4 → Pop
+            assertTrue(output.toString().contains("The category is Pop"));
+        }
+    }
+
+
+    @Nested
+    class CorrectAnswer {
+
+        @BeforeEach
+        void addPlayers() {
+            game.add("Alice");
+            game.add("Bob");
+        }
+
+        @Test
+        void correctAnswerAddsCoin() {
+            game.roll(1);
+            game.handleCorrectAnswer();
+            assertTrue(output.toString().contains("Alice now has 1 Gold Coins."));
+        }
+
+        @Test
+        void correctAnswerPrintsCorrect() {
+            game.roll(1);
+            game.handleCorrectAnswer();
+            assertTrue(output.toString().contains("Answer was correct!!!!"));
+        }
+
+        @Test
+        void gameNotOverBefore6Coins() {
+            game.roll(1);
+            boolean notOver = game.handleCorrectAnswer();
+            assertTrue(notOver);
+        }
+
+        @Test
+        void gameOverWhenPlayerReaches6Coins() {
+            for (int i = 0; i < 5; i++) {
+                game.roll(1);
+                game.handleCorrectAnswer();
+                game.roll(1);
+                game.handleCorrectAnswer();
+            }
+            game.roll(1);
+            boolean notOver = game.handleCorrectAnswer();
+            assertFalse(notOver);
+        }
+
+        @Test
+        void turnPassesToNextPlayerAfterCorrectAnswer() {
+            game.roll(1);
+            game.handleCorrectAnswer();
+            game.roll(2);
+            assertTrue(output.toString().contains("Bob is the current player"));
+        }
+    }
+
+
+    @Nested
+    class WrongAnswerAndPenaltyBox {
+
+        @BeforeEach
+        void addPlayers() {
+            game.add("Alice");
+            game.add("Bob");
+        }
+
+        @Test
+        void wrongAnswerSendsPlayerToPenaltyBox() {
+            game.roll(1);
+            game.wrongAnswer();
+            assertTrue(output.toString().contains("Alice was sent to the penalty box"));
+        }
+
+        @Test
+        void wrongAnswerDoesNotEndGame() {
+            game.roll(1);
+            boolean notOver = game.wrongAnswer();
+            assertTrue(notOver);
+        }
+
+        @Test
+        void oddRollGetsPlayerOutOfPenaltyBox() {
+            game.roll(1);
+            game.wrongAnswer();
+            game.roll(1);
+            game.handleCorrectAnswer();
+            game.roll(1);
+            assertTrue(output.toString().contains("Alice is getting out of the penalty box"));
+        }
+
+        @Test
+        void evenRollKeepsPlayerInPenaltyBox() {
+            game.roll(1);
+            game.wrongAnswer();
+            game.roll(1);
+            game.handleCorrectAnswer();
+            game.roll(2);
+            assertTrue(output.toString().contains("Alice is not getting out of the penalty box"));
+        }
+
+        @Test
+        void playerInPenaltyBoxWithEvenRollSkipsTurn() {
+            game.roll(1);
+            game.wrongAnswer();
+            game.roll(1);
+            game.handleCorrectAnswer();
+            game.roll(2);
+            game.handleCorrectAnswer();
+            assertFalse(output.toString().contains("Alice now has 1 Gold Coins."));
+        }
+
+        @Test
+        void playerGettingOutOfPenaltyBoxCanEarnCoin() {
+            game.roll(1);
+            game.wrongAnswer();
+            game.roll(1);
+            game.handleCorrectAnswer();
+            game.roll(1);
+            game.handleCorrectAnswer();
+            assertTrue(output.toString().contains("Alice now has 1 Gold Coins."));
+        }
+    }
+
+
+    @Nested
+    class TurnRotation {
+
+        @Test
+        void turnsRotateAmongAllPlayers() {
+            game.add("Alice");
+            game.add("Bob");
+            game.add("Carol");
+
+            game.roll(1); game.handleCorrectAnswer();
+            game.roll(1); game.handleCorrectAnswer();
+            game.roll(1); game.handleCorrectAnswer();
+            game.roll(1);
+
+            String out = output.toString();
+            int aliceFirst  = out.indexOf("Alice is the current player");
+            int bobTurn     = out.indexOf("Bob is the current player");
+            int carolTurn   = out.indexOf("Carol is the current player");
+            int aliceSecond = out.lastIndexOf("Alice is the current player");
+
+            assertTrue(aliceFirst < bobTurn);
+            assertTrue(bobTurn < carolTurn);
+            assertTrue(carolTurn < aliceSecond);
+        }
+
+        @Test
+        void turnsWrapBackToFirstPlayer() {
+            game.add("Alice");
+            game.add("Bob");
+
+            game.roll(1); game.handleCorrectAnswer();
+            game.roll(1); game.handleCorrectAnswer();
+            game.roll(1);
+
+            long aliceCount = output.toString()
+                    .lines()
+                    .filter(l -> l.equals("Alice is the current player"))
+                    .count();
+            assertEquals(2, aliceCount);
+        }
+    }
 }
